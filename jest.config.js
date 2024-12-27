@@ -161,7 +161,7 @@ module.exports = {
   transform: {
     '^.+\\.ts?$': 'ts-jest',
   },
-
+  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
   //   "/node_modules/"

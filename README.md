@@ -1,109 +1,170 @@
-# Bulletproof Node.js architecture 🛡️
+# Node.js Express TypeScript Boilerplate
 
-This is the example repository from the blog post ['Bulletproof node.js project architecture'](https://softwareontheroad.com/ideal-nodejs-project-structure?utm_source=github&utm_medium=readme)
+A production-ready Node.js boilerplate with TypeScript, Express, and modern development tools.
 
-Please read the blog post in order to have a good understanding of the server architecture.
+## Features
 
-Also, I added lots of comments to the code that are not in the blog post, because they explain the implementation and the reason behind the choices of libraries and some personal opinions and some bad jokes.
+- **TypeScript** - Write better code with static typing
+- **Express** - Fast, unopinionated web framework
+- **Modern JavaScript** - ES2022 features through TypeScript
+- **Dependency Injection** - Using TypeDI for better code organization
+- **Storage Abstraction** - Flexible file storage with local and S3 support
+- **API Documentation** - OpenAPI/Swagger specification
+- **Security** - Helmet middleware for security headers
+- **Validation** - Request validation using celebrate/Joi
+- **Error Handling** - Centralized error handling
+- **Logging** - Using Winston for better debugging
+- **Authentication** - JWT-based authentication
+- **Development Tools**
+  - ESLint for code linting
+  - Prettier for code formatting
+  - Husky for Git hooks
+  - Jest for testing
+  - Nodemon for development
 
-The API by itself doesn't do anything fancy, it's just a user CRUD with authentication capabilities.
-Maybe we can transform this into something useful, a more advanced example, just open an issue and let's discuss the future of the repo.
+## Prerequisites
 
-## Development
+- Node.js >= 20.0.0
+- npm >= 10.0.0
 
-We use `node` version `14.9.0`
+## Getting Started
 
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd nodejs-boilerplate
 ```
-nvm install 14.9.0
-```
 
-```
-nvm use 14.9.0
-```
-
-The first time, you will need to run
-
-```
+2. Install dependencies:
+```bash
 npm install
 ```
 
-Then just start the server with
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Start development server:
+```bash
+npm run dev
+```
+
+## Environment Variables
+
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Storage
+STORAGE_PROVIDER=local  # or 's3'
+STORAGE_LOCAL_ROOT=storage
+
+# AWS S3 (if using S3 storage)
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_region
+AWS_BUCKET=your_bucket
+
+# JWT
+JWT_SECRET=your_jwt_secret
+
+# Logging
+LOG_LEVEL=debug
+```
+
+## API Routes
+
+### File Upload
+
+```bash
+# Upload a file
+curl -X POST -F "file=@test.txt" http://localhost:3000/api/files/upload
+
+# Download a file
+curl http://localhost:3000/api/files/filename.txt
+
+# Delete a file
+curl -X DELETE http://localhost:3000/api/files/filename.txt
+```
+
+## Project Structure
 
 ```
-npm run start
+src/
+├── api/              # API routes and controllers
+├── config/           # Configuration
+├── interfaces/       # TypeScript interfaces
+├── loaders/         # Application loaders
+├── middlewares/     # Express middlewares
+├── models/          # Data models
+├── services/        # Business logic
+│   └── storage/     # Storage providers
+└── types/           # Type definitions
 ```
-It uses nodemon for livereloading :peace-fingers:
 
-## Online one-click setup
+## Available Scripts
 
-You can use Gitpod for the one click online setup. With a single click it will launch a workspace and automatically:
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm test` - Run tests
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
 
-- clone the `bulletproof-nodejs` repo.
-- install the dependencies.
-- run `cp .env.example .env`.
-- run `npm run start`.
+## Running Tests
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)
+To run the tests for this project, follow these steps:
 
-# API Validation
+1. Ensure all dependencies are installed by running:
+   ```bash
+   npm install
+   ```
 
- By using [celebrate](https://github.com/arb/celebrate), the req.body schema becomes cleary defined at route level, so even frontend devs can read what an API endpoint expects without needing to write documentation that can get outdated quickly.
+2. Run the tests using Jest:
+   ```bash
+   npm test
+   ```
 
- ```js
- route.post('/signup',
-  celebrate({
-    body: Joi.object({
-      name: Joi.string().required(),
-      email: Joi.string().required(),
-      password: Joi.string().required(),
-    }),
-  }),
-  controller.signup)
- ```
+This will execute all test suites and provide a summary of the results.
 
- **Example error**
+## Storage Providers
 
- ```json
- {
-  "errors": {
-    "message": "child \"email\" fails because [\"email\" is required]"
-  }
- }
- ```
+The application supports multiple storage providers through a clean abstraction:
 
-[Read more about celebrate here](https://github.com/arb/celebrate) and [the Joi validation API](https://github.com/hapijs/joi/blob/v15.0.1/API.md)
+### Local Storage
+Files are stored in the local filesystem. Configure with:
+```env
+STORAGE_PROVIDER=local
+STORAGE_LOCAL_ROOT=storage
+```
 
-# Roadmap
-- [x] API Validation layer (Celebrate+Joi)
-- [ ] Unit tests examples
-- [ ] [Cluster mode](https://softwareontheroad.com/nodejs-scalability-issues?utm_source=github&utm_medium=readme)
-- [x] The logging _'layer'_
-- [ ] Add agenda dashboard
-- [x] Continuous integration with CircleCI 😍
-- [ ] Deploys script and docs for AWS Elastic Beanstalk and Heroku
-- [ ] Integration test with newman 😉
-- [ ] Instructions on typescript debugging with VSCode
+### S3 Storage
+Files are stored in AWS S3. Configure with:
+```env
+STORAGE_PROVIDER=s3
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_region
+AWS_BUCKET=your_bucket
+```
 
-## API Documentation
+## Adding New Storage Providers
 
-To simplify documenting your API, we have included [Optic](https://useoptic.com). To use it, you will need to [install the CLI tool](https://useoptic.com/document/#add-an-optic-specification-to-your-api-project), and then you can use `api exec "npm start"` to start capturing your endpoints as you create them. Once you want to review and add them to your API specification run: `api status -- review`.
+1. Create a new provider in `src/services/storage/providers/`
+2. Implement the `IStorageProvider` interface
+3. Update the `StorageService` to use the new provider
 
-# FAQ
 
- ## Where should I put the FrontEnd code? Is this a good backend for Angular or React or Vue or _whatever_ ?
+## Contributing
 
-  [It's not a good idea to have node.js serving static assets a.k.a the frontend](https://softwareontheroad.com/nodejs-scalability-issues?utm_source=github&utm_medium=readme)
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
-  Also, I don't wanna take part in frontend frameworks wars 😅
+## License
 
-  Just use the frontend framework you like the most _or hate the least_. It will work 😁
-
- ## Don't you think you can add X layer to do Y? Why do you still use express if the Serverless Framework is better and it's more reliable?
-
-  I know this is not a perfect architecture but it's the most scalable that I know with less code and headache that I know.
-
-  It's meant for small startups or one-developer army projects.
-
-  I know if you start moving layers into another technology, you will end up with your business/domain logic into npm packages, your routing layer will be pure AWS Lambda functions and your data layer a combination of DynamoDB, Redis, maybe redshift, and Agolia.
-
-  Take a deep breath and go slowly, let the business grow and then scale up your product. You will need a team and talented developers anyway.
+This project is licensed under the ISC License.

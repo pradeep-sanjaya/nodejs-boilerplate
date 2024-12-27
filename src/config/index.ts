@@ -6,27 +6,10 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const envFound = dotenv.config();
 if (envFound.error) {
   // This error should crash whole process
-
   throw new Error("⚠️  Couldn't find .env file  ⚠️");
 }
 
-export default {
-  /**
-   * Your favorite port
-   */
-  port: parseInt(process.env.PORT, 10),
-
-  /**
-   * That long string from mlab
-   */
-  databaseURL: process.env.MONGODB_URI,
-
-  /**
-   * Your secret sauce
-   */
-  jwtSecret: process.env.JWT_SECRET,
-  jwtAlgorithm: process.env.JWT_ALGO,
-
+const config = {
   /**
    * Used by winston logger
    */
@@ -35,12 +18,35 @@ export default {
   },
 
   /**
-   * Agenda.js stuff
+   * API configs
+   */
+  api: {
+    prefix: '/api',
+  },
+
+  /**
+   * Your favorite port
+   */
+  port: parseInt(process.env.PORT || '3000', 10),
+
+  /**
+   * That long string from your jwt secret
+   */
+  jwtSecret: process.env.JWT_SECRET || 'my-super-secret-jwt-token-with-at-least-32-characters-long',
+  jwtAlgorithm: process.env.JWT_ALGO || 'HS256',
+
+  /**
+   * Your secret sauce
+   */
+  databaseURL: process.env.MONGODB_URI,
+
+  /**
+   * Used by winston logger
    */
   agenda: {
     dbCollection: process.env.AGENDA_DB_COLLECTION,
     pooltime: process.env.AGENDA_POOL_TIME,
-    concurrency: parseInt(process.env.AGENDA_CONCURRENCY, 10),
+    concurrency: parseInt(process.env.AGENDA_CONCURRENCY || '20', 10),
   },
 
   /**
@@ -53,15 +59,24 @@ export default {
   /**
    * API configs
    */
-  api: {
-    prefix: '/api',
-  },
-  /**
-   * Mailgun email credentials
-   */
   emails: {
     apiKey: process.env.MAILGUN_API_KEY,
     apiUsername: process.env.MAILGUN_USERNAME,
     domain: process.env.MAILGUN_DOMAIN
-  }
+  },
+  /**
+   * Storage configs
+   */
+  storage: {
+    provider: process.env.STORAGE_PROVIDER || 'local',
+    localRoot: process.env.STORAGE_LOCAL_ROOT || 'storage',
+    s3: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      region: process.env.AWS_REGION || '',
+      bucket: process.env.AWS_BUCKET || '',
+    },
+  },
 };
+
+export default config;

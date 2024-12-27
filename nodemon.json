@@ -1,11 +1,8 @@
 {
   "watch": [
-    "src",
-    ".env"
+    "src"
   ],
-  "ext": "js,ts,json",
-  "ignore": [
-    "src/**/*.spec.ts"
-  ],
-  "exec": "ts-node -r tsconfig-paths/register --transpile-only ./src/app.ts"
+  "ext": ".ts,.js",
+  "ignore": [],
+  "exec": "ts-node -r tsconfig-paths/register ./src/app.ts"
 }

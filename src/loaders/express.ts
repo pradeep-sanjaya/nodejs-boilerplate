@@ -1,12 +1,16 @@
-import express from 'express';
+import express, { Application } from 'express';
 import cors from 'cors';
 import { OpticMiddleware } from '@useoptic/express-middleware';
-import routes from '@/api';
-import config from '@/config';
-export default ({ app }: { app: express.Application }) => {
+import routes from '../api';
+import config from '../config';
+
+interface ExpressLoaderOptions {
+  app: Application;
+}
+
+const expressLoader = ({ app }: ExpressLoaderOptions) => {
   /**
    * Health Check endpoints
-   * @TODO Explain why they are here
    */
   app.get('/status', (req, res) => {
     res.status(200).end();
@@ -16,28 +20,25 @@ export default ({ app }: { app: express.Application }) => {
   });
 
   // Useful if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
-  // It shows the real origin IP in the heroku or Cloudwatch logs
   app.enable('trust proxy');
 
-  // The magic package that prevents frontend developers going nuts
-  // Alternate description:
-  // Enable Cross Origin Resource Sharing to all origins by default
+  // Enable Cross Origin Resource Sharing
   app.use(cors());
 
-  // Some sauce that always add since 2014
-  // "Lets you use HTTP verbs such as PUT or DELETE in places where the client doesn't support it."
-  // Maybe not needed anymore ?
-  app.use(require('method-override')());
-
-  // Transforms the raw string of req.body into json
+  // Middleware that transforms the raw string of req.body into json
   app.use(express.json());
+
   // Load API routes
   app.use(config.api.prefix, routes());
 
   // API Documentation
-  app.use(OpticMiddleware({
-      enabled: process.env.NODE_ENV !== 'production',
-  }));
+  if (process.env.NODE_ENV === 'development') {
+    app.use(
+      OpticMiddleware({
+        enabled: true,
+      })
+    );
+  }
 
   /// catch 404 and forward to error handler
   app.use((req, res, next) => {
@@ -48,9 +49,6 @@ export default ({ app }: { app: express.Application }) => {
 
   /// error handlers
   app.use((err, req, res, next) => {
-    /**
-     * Handle 401 thrown by express-jwt library
-     */
     if (err.name === 'UnauthorizedError') {
       return res
         .status(err.status)
@@ -59,6 +57,7 @@ export default ({ app }: { app: express.Application }) => {
     }
     return next(err);
   });
+
   app.use((err, req, res, next) => {
     res.status(err.status || 500);
     res.json({
@@ -68,3 +67,5 @@ export default ({ app }: { app: express.Application }) => {
     });
   });
 };
+
+export default expressLoader;

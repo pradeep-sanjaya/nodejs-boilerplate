@@ -1,29 +1,41 @@
 import { Container } from 'typedi';
-import mongoose from 'mongoose';
-import { IUser } from '@/interfaces/IUser';
 import { Logger } from 'winston';
+import { Request, Response, NextFunction } from 'express';
+import { IUser } from '@/interfaces/IUser';
+
+interface ITokenUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface RequestWithUser extends Request {
+  token: ITokenUser;
+  currentUser: IUser;
+}
 
 /**
  * Attach user to req.currentUser
- * @param {*} req Express req Object
- * @param {*} res  Express res Object
- * @param {*} next  Express next Function
+ * @param {Request} req Express req Object
+ * @param {Response} res  Express res Object
+ * @param {NextFunction} next  Express next Function
  */
-const attachCurrentUser = async (req, res, next) => {
-  const Logger : Logger = Container.get('logger');
+const attachCurrentUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  const logger: Logger = Container.get('logger');
   try {
-    const UserModel = Container.get('userModel') as mongoose.Model<IUser & mongoose.Document>;
-    const userRecord = await UserModel.findById(req.token._id);
-    if (!userRecord) {
-      return res.sendStatus(401);
-    }
-    const currentUser = userRecord.toObject();
-    Reflect.deleteProperty(currentUser, 'password');
-    Reflect.deleteProperty(currentUser, 'salt');
+    // Since we removed MongoDB, we'll just pass the token user data
+    // You should implement your own user retrieval logic here
+    const currentUser = {
+      ...req.token,
+      password: '', // Empty string since we don't store password in token
+      salt: '',     // Empty string since we don't store salt in token
+    } as IUser;
+
     req.currentUser = currentUser;
     return next();
   } catch (e) {
-    Logger.error('🔥 Error attaching user to req: %o', e);
+    logger.error(' Error attaching user to req: %o', e);
     return next(e);
   }
 };
