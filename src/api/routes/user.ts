@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { Router, Response, Request } from 'express';
 import { isAuth, attachCurrentUser } from '../middlewares';
+import { IUser } from '@/interfaces/IUser';
 
 const route = Router();
 
@@ -9,7 +10,7 @@ const userRouter = (app: Router): void => {
   route.get('/me', 
     isAuth, 
     attachCurrentUser, 
-    (req, res) => {
+    (req: Request & { currentUser: IUser }, res: Response) => {
       return res.json({ user: req.currentUser }).status(200);
     }
   );

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Router as ExpressRouter } from 'express';
 import { Container } from 'typedi';
 import { celebrate, Joi } from 'celebrate';
 import AuthService from '../../services/auth';
@@ -7,7 +7,7 @@ import { Logger } from 'winston';
 
 const route = Router();
 
-export default (app) => {
+export default (app: Router) => {
   app.use('/auth', route);
 
   route.post(

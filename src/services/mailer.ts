@@ -1,26 +1,39 @@
 import { Service, Inject } from 'typedi';
 import { IUser } from '@/interfaces/IUser';
 
+interface EmailClient {
+  messages: {
+    create(domain: string, data: EmailData): Promise<any>;
+  };
+}
+
+interface EmailData {
+  from: string;
+  to: string[];
+  subject: string;
+  text: string;
+}
+
 @Service()
 export default class MailerService {
   constructor(
-    @Inject('emailClient') private emailClient,
-    @Inject('emailDomain') private emailDomain,
+    @Inject('emailClient') private emailClient: EmailClient,
+    @Inject('emailDomain') private emailDomain: string,
   ) { }
 
-  public async SendWelcomeEmail(email) {
+  public async SendWelcomeEmail(email: IUser) {
     /**
      * @TODO Call Mailchimp/Sendgrid or whatever
      */
     // Added example for sending mail from mailgun
-    const data = {
+    const data: EmailData = {
       from: 'Excited User <me@samples.mailgun.org>',
-      to: [email],
+      to: [email.email],
       subject: 'Hello',
       text: 'Testing some Mailgun awesomness!'
     };
     try {
-      this.emailClient.messages.create(this.emailDomain, data);
+      await this.emailClient.messages.create(this.emailDomain, data);
       return { delivered: 1, status: 'ok' };
     } catch(e) {
       return  { delivered: 0, status: 'error' };

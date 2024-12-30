@@ -4,7 +4,7 @@ import logger from './logger';
 import { Container } from 'typedi';
 import StorageService from '../services/storage/StorageService';
 
-export default async ({ expressApp }) => {
+export default async ({ expressApp }: { expressApp: any }) => {
   logger.info('Loading dependencies...');
 
   // Explicitly register StorageService

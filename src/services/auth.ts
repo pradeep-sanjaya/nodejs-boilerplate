@@ -5,16 +5,22 @@ import config from '@/config';
 import argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { IUser, IUserInputDTO } from '@/interfaces/IUser';
-import { EventDispatcher, EventDispatcherInterface } from '@/decorators/eventDispatcher';
+import { EventDispatcher as EventDispatcherClass } from 'event-dispatch';
 import events from '@/subscribers/events';
+import { Logger } from 'winston';
+
+interface UserRepository {
+  create(data: any): Promise<IUser>;
+  findOne(query: any): Promise<IUser | null>;
+}
 
 @Service()
 export default class AuthService {
   constructor(
-    @Inject('userModel') private userModel: Models.UserModel,
+    @Inject('userModel') private userModel: UserRepository,
     private mailer: MailerService,
-    @Inject('logger') private logger,
-    @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
+    @Inject('logger') private logger: Logger,
+    private eventDispatcher: EventDispatcherClass,
   ) {
   }
 
@@ -63,7 +69,7 @@ export default class AuthService {
        * that transforms data from layer to layer
        * but that's too over-engineering for now
        */
-      const user = userRecord.toObject();
+      const user = userRecord;
       Reflect.deleteProperty(user, 'password');
       Reflect.deleteProperty(user, 'salt');
       return { user, token };
@@ -88,7 +94,7 @@ export default class AuthService {
       this.logger.silly('Generating JWT');
       const token = this.generateToken(userRecord);
 
-      const user = userRecord.toObject();
+      const user = userRecord;
       Reflect.deleteProperty(user, 'password');
       Reflect.deleteProperty(user, 'salt');
       /**
@@ -100,7 +106,7 @@ export default class AuthService {
     }
   }
 
-  private generateToken(user) {
+  private generateToken(user: IUser) {
     const today = new Date();
     const exp = new Date(today);
     exp.setDate(today.getDate() + 60);

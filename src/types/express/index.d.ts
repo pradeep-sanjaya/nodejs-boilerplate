@@ -1,13 +1,15 @@
-import { Document, Model } from 'mongoose';
 import { IUser } from '@/interfaces/IUser';
-declare global {
-  namespace Express {
-    export interface Request {
-      currentUser: IUser & Document;
-    }    
-  }
 
-  namespace Models {
-    export type UserModel = Model<IUser & Document>;
+export interface ITokenUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+declare module 'express-serve-static-core' {
+  interface Request {
+    currentUser: IUser;
+    token: ITokenUser;
   }
 }

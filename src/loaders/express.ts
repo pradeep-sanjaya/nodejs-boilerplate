@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { OpticMiddleware } from '@useoptic/express-middleware';
 import routes from '../api';
@@ -8,14 +8,18 @@ interface ExpressLoaderOptions {
   app: Application;
 }
 
+interface CustomError extends Error {
+  status?: number;
+}
+
 const expressLoader = ({ app }: ExpressLoaderOptions) => {
   /**
    * Health Check endpoints
    */
-  app.get('/status', (req, res) => {
+  app.get('/status', (req: Request, res: Response) => {
     res.status(200).end();
   });
-  app.head('/status', (req, res) => {
+  app.head('/status', (req: Request, res: Response) => {
     res.status(200).end();
   });
 
@@ -41,24 +45,24 @@ const expressLoader = ({ app }: ExpressLoaderOptions) => {
   }
 
   /// catch 404 and forward to error handler
-  app.use((req, res, next) => {
-    const err = new Error('Not Found');
-    err['status'] = 404;
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const err: CustomError = new Error('Not Found');
+    err.status = 404;
     next(err);
   });
 
   /// error handlers
-  app.use((err, req, res, next) => {
+  app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
     if (err.name === 'UnauthorizedError') {
       return res
-        .status(err.status)
+        .status(err.status || 500)
         .send({ message: err.message })
         .end();
     }
     return next(err);
   });
 
-  app.use((err, req, res, next) => {
+  app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
     res.status(err.status || 500);
     res.json({
       errors: {
